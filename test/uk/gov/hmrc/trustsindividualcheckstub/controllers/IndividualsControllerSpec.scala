@@ -38,25 +38,48 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
                           |    "birthDate": "2020-05-10"
                           |}""".stripMargin)
 
-  private def fakeRequest(nino: String = "JP121314A") =
-    FakeRequest("POST", "/")
-      .withHeaders(("Content-type", "application/json"))
-      .withJsonBody(body(nino))
-
   private val controller = application.injector.instanceOf[IndividualsController]
 
   "POST /individuals/match" should {
     "return 200 with a valid body" when {
       "a match is found" in {
-        val result = controller.matchIndividual()(fakeRequest())
+
+        val fakeRequest = FakeRequest("POST", "/")
+          .withHeaders(("Content-type", "application/json"))
+          .withJsonBody(body("JH000000A"))
+
+        val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.OK
         contentAsJson(result) shouldBe Json.obj("individualMatch" -> true)
       }
 
       "a match is not found" in {
-        val result = controller.matchIndividual()(fakeRequest("AA000000A"))
+
+        val fakeRequest = FakeRequest("POST", "/")
+          .withHeaders(("Content-type", "application/json"))
+          .withJsonBody(body("AA000000A"))
+
+        val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.OK
         contentAsJson(result) shouldBe Json.obj("individualMatch" -> false)
+      }
+    }
+
+    "return 400" when {
+      "invalid payload" in {
+
+        val fakeRequest = FakeRequest("POST", "/")
+          .withHeaders(("Content-type", "application/json"))
+          .withJsonBody(Json.obj())
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.BAD_REQUEST
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
+          Json.obj(
+            "code" -> "INVALID_PAYLOAD",
+            "reason" -> "Submission has not passed validation. Invalid payload."
+          )
+        ))
       }
     }
   }

@@ -20,12 +20,14 @@ import play.api.libs.json.{JsValue, Json}
 
 object CommonUtil {
 
-  val jsonResponse400: JsValue = Json.parse(
-    s"""
-       |{
-       | "code": "INVALID_PAYLOAD",
-       | "reason": "Submission has not passed validation. Invalid Payload."
-       |}""".stripMargin)
+  val jsonResponse400: JsValue = Json.obj(
+    "failures" -> Json.arr(
+      Json.obj(
+        "code" -> "INVALID_PAYLOAD",
+        "reason" -> "Submission has not passed validation. Invalid payload."
+      )
+    )
+  )
 
   val jsonResponse400CorrelationId: JsValue = Json.parse(
     s"""
