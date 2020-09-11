@@ -25,6 +25,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import play.api.test.FakeRequest
+import uk.gov.hmrc.trustsindividualcheckstub.utils.CommonUtil
 
 class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
@@ -107,6 +108,53 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
             "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
           )
         ))
+      }
+    }
+
+    "return 404" when {
+      "nino corresponds with nino not found" in {
+
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.notFound))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.NOT_FOUND
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
+          Json.obj(
+            "code" -> "RESOURCE_NOT_FOUND",
+            "reason" -> "The remote endpoint has indicated that no data can be found."
+          )
+        ))
+      }
+    }
+
+    "return 503" when {
+      "nino corresponds with service unavailable" in {
+
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.serviceUnavailable))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.SERVICE_UNAVAILABLE
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(
+          s"""
+             |{
+             | "code": "SERVICE_UNAVAILABLE",
+             | "reason": "Dependent systems are currently not responding."
+             |}""".stripMargin)))
+      }
+    }
+    "return 500" when {
+      "nino corresponds with server error" in {
+
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.serverError))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.INTERNAL_SERVER_ERROR
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(
+          s"""
+             |{
+             | "code": "SERVER_ERROR",
+             | "reason": "IF is currently experiencing problems that require live service intervention."
+             |}""".stripMargin)))
       }
     }
   }

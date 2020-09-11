@@ -20,6 +20,11 @@ import play.api.libs.json.{JsValue, Json}
 
 object CommonUtil {
 
+  val failedMatch = "AA000000A"
+  val serviceUnavailable = "AA000000B"
+  val serverError = "AA000000C"
+  val notFound = "AA000000D"
+
   val jsonResponse400: JsValue = Json.obj(
     "failures" -> Json.arr(
       Json.obj(
@@ -36,26 +41,25 @@ object CommonUtil {
        | "reason": "Submission has not passed validation. Invalid Header CorrelationId."
        |}""".stripMargin)))
 
-  val jsonResponse503: JsValue = Json.parse(
+  val jsonResponse404: JsValue = Json.obj("failures" -> Json.arr(Json.parse(
+    s"""
+       |{
+       | "code": "RESOURCE_NOT_FOUND",
+       | "reason": "The remote endpoint has indicated that no data can be found."
+       |}""".stripMargin)))
+
+  val jsonResponse503: JsValue = Json.obj("failures" -> Json.arr(Json.parse(
     s"""
        |{
        | "code": "SERVICE_UNAVAILABLE",
-       | "reason": "Dependent systems are currently not responding"
-       |}""".stripMargin)
+       | "reason": "Dependent systems are currently not responding."
+       |}""".stripMargin)))
 
-  val jsonResponse500: JsValue = Json.parse(
+  val jsonResponse500: JsValue = Json.obj("failures" -> Json.arr(Json.parse(
     s"""
        |{
        | "code": "SERVER_ERROR",
-       | "reason": "IF is currently experiencing problems that require live service intervention"
-       |}""".stripMargin)
-
-
-  val jsonResponse409DuplicateCorrelation: JsValue = Json.parse(
-    s"""
-       |{
-       | "code": "DUPLICATE_SUBMISSION",
-       | "reason": "Duplicate Correlation Id was submitted."
-       |}""".stripMargin)
+       | "reason": "IF is currently experiencing problems that require live service intervention."
+       |}""".stripMargin)))
 
 }

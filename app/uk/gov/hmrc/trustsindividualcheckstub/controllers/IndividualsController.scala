@@ -35,9 +35,7 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
   private val logger = Logger("IndividualsController")
 
-  private val failedMatch = "AA000000A"
-
-  def matchIndividual(): Action[AnyContent] = Action.async { implicit request =>
+  def matchIndividual(): Action[AnyContent] = Action { implicit request =>
 
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
 
@@ -52,34 +50,37 @@ class IndividualsController @Inject()(appConfig: AppConfig,
           val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
 
           logger.info(s"[matchIndividual] payload : ${payload}.")
+
           response(payload, validationResult)
 
         } else {
-          Future.successful(BadRequest(jsonResponse400CorrelationId))
+          BadRequest(jsonResponse400CorrelationId)
         }
-      case None => Future.successful(BadRequest(jsonResponse400CorrelationId))
+      case None => BadRequest(jsonResponse400CorrelationId)
 
     }
 
   }
 
-  private def response(payload: JsValue, validationResult: ValidationResult): Future[Result] = {
+  private def response(payload: JsValue, validationResult: ValidationResult): Result = {
     validationResult match {
       case fail: FailedValidation =>
         logger.info("[matchIndividual] failed in payload validation.")
         logger.error(s"Failed with errors ${Json.toJson(fail)}")
-        Future.successful(BadRequest(jsonResponse400))
+        BadRequest(jsonResponse400)
       case SuccessfulValidation =>
+
+        logger.info(s"[matchIndividual] successful validation with payload: $payload.")
 
         val nino = (payload \ "nino").as[String]
 
-        val individualMatch = nino match {
-          case `failedMatch` => false
-          case _ => true
+        nino match {
+          case `notFound` => NotFound(jsonResponse404)
+          case `serviceUnavailable` => ServiceUnavailable(jsonResponse503)
+          case `serverError` => InternalServerError(jsonResponse500)
+          case `failedMatch` => Ok(Json.obj("individualMatch" -> false))
+          case _ => Ok(Json.obj("individualMatch" -> true))
         }
-
-        logger.info(s"[matchIndividual] successful validation with payload: $payload.")
-        Future.successful(Ok(Json.obj("individualMatch" -> individualMatch)))
 
     }
   }
