@@ -40,12 +40,26 @@ class IndividualsController @Inject()(appConfig: AppConfig,
   def matchIndividual(): Action[AnyContent] = Action.async { implicit request =>
 
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
-    val payload: JsValue = request.body.asJson.get
 
-    val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
+    request.headers.get("Correlation-Id") match {
+      case Some(corrId) =>
 
-    logger.info(s"[matchIndividual] payload : ${payload}.")
-    response(payload, validationResult)
+        val regex = """^[0-9a-fA-F]{8}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{12}$""".r
+
+        if (regex.findFirstIn(corrId).isDefined) {
+          val payload: JsValue = request.body.asJson.get
+
+          val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
+
+          logger.info(s"[matchIndividual] payload : ${payload}.")
+          response(payload, validationResult)
+
+        } else {
+          Future.successful(BadRequest(jsonResponse400CorrelationId))
+        }
+      case None => Future.successful(BadRequest(jsonResponse400CorrelationId))
+
+    }
 
   }
 
@@ -67,6 +81,6 @@ class IndividualsController @Inject()(appConfig: AppConfig,
         logger.info(s"[matchIndividual] successful validation with payload: $payload.")
         Future.successful(Ok(Json.obj("individualMatch" -> individualMatch)))
 
-      }
+    }
   }
 }

@@ -29,12 +29,12 @@ object CommonUtil {
     )
   )
 
-  val jsonResponse400CorrelationId: JsValue = Json.parse(
+  val jsonResponse400CorrelationId: JsValue = Json.obj("failures" -> Json.arr(Json.parse(
     s"""
        |{
        | "code": "INVALID_CORRELATIONID",
-       | "reason": "Submission has not passed validation. Invalid CorrelationId."
-       |}""".stripMargin)
+       | "reason": "Submission has not passed validation. Invalid Header CorrelationId."
+       |}""".stripMargin)))
 
   val jsonResponse503: JsValue = Json.parse(
     s"""
