@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "nino": {
+      "type": "string",
+      "description": "Mandatory. National Insurance number (with optional trailing suffix character)",
+      "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D\\s]?$",
+      "example": "AB123456A"
+    },
+    "surname": {
+      "$ref": "#/definitions/nameType"
+    },
+    "forename": {
+      "$ref": "#/definitions/nameType"
+    },
+    "birthDate": {
+      "type": "string",
+      "description": "Mandatory. Date of Birth for the individual requesting confirmation/match",
+      "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
+      "example": "2000-02-29"
+    }
+  },
+  "required": [
+    "nino",
+    "surname",
+    "forename",
+    "birthDate"
+  ],
+  "definitions": {
+    "nameType": {
+      "type": "string",
+      "title": "nameType",
+      "pattern": "^(?=.{1,99}$)([A-Z]([-'. ]{0,1}[A-Za-z ]+)*[A-Za-z]?)$",
+      "description": "Common name element definition",
+      "example": "Brown"
+    }
+  }
+}

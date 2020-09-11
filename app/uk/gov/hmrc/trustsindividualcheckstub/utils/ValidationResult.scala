@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.trustsindividualcheckstub.config
+package uk.gov.hmrc.trustsindividualcheckstub.utils
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.json.Json
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+trait ValidationResult
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+case class ValidationError(message: String, location: String)
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+object ValidationError {
+  implicit val formats = Json.format[ValidationError]
 }
+
+case class FailedValidation(message: String, code: Int, validationErrors: Seq[ValidationError]) extends ValidationResult
+
+
+object FailedValidation {
+  implicit val formats = Json.format[FailedValidation]
+}
+
+case object SuccessfulValidation extends ValidationResult
+
+
