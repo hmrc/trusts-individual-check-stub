@@ -20,10 +20,10 @@ import play.api.libs.json.{JsValue, Json}
 
 object CommonUtil {
 
-  val failedMatch = "AA000000A"
-  val serviceUnavailable = "AA000000B"
-  val serverError = "AA000000C"
-  val notFound = "AA000000D"
+  val successfulMatch = "AA100001A"
+  val serviceUnavailable = "AA100503A"
+  val serverError = "AA100500A"
+  val notFound = "AA100404A"
 
   val jsonResponse400: JsValue = Json.obj(
     "failures" -> Json.arr(

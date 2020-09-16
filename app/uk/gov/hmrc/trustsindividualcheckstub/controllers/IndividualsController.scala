@@ -25,8 +25,6 @@ import uk.gov.hmrc.trustsindividualcheckstub.config.AppConfig
 import uk.gov.hmrc.trustsindividualcheckstub.utils.CommonUtil._
 import uk.gov.hmrc.trustsindividualcheckstub.utils._
 
-import scala.concurrent.Future
-
 @Singleton()
 class IndividualsController @Inject()(appConfig: AppConfig,
                                       cc: ControllerComponents,
@@ -78,8 +76,8 @@ class IndividualsController @Inject()(appConfig: AppConfig,
           case `notFound` => NotFound(jsonResponse404)
           case `serviceUnavailable` => ServiceUnavailable(jsonResponse503)
           case `serverError` => InternalServerError(jsonResponse500)
-          case `failedMatch` => Ok(Json.obj("individualMatch" -> false))
-          case _ => Ok(Json.obj("individualMatch" -> true))
+          case `successfulMatch` => Ok(Json.obj("individualMatch" -> true))
+          case _ => Ok(Json.obj("individualMatch" -> false))
         }
 
     }

@@ -65,7 +65,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
     "return 200 with a valid body" when {
       "a match is found" in {
 
-        val fakeRequest = createRequestWithValidHeaders(body("JH000000A"))
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.successfulMatch))
 
         val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.OK
