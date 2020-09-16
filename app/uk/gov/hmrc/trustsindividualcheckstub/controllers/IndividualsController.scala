@@ -25,8 +25,6 @@ import uk.gov.hmrc.trustsindividualcheckstub.config.AppConfig
 import uk.gov.hmrc.trustsindividualcheckstub.utils.CommonUtil._
 import uk.gov.hmrc.trustsindividualcheckstub.utils._
 
-import scala.concurrent.Future
-
 @Singleton()
 class IndividualsController @Inject()(appConfig: AppConfig,
                                       cc: ControllerComponents,
@@ -35,38 +33,53 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
   private val logger = Logger("IndividualsController")
 
-  private val failedMatch = "AA000000A"
-
-  def matchIndividual(): Action[AnyContent] = Action.async { implicit request =>
+  def matchIndividual(): Action[AnyContent] = Action { implicit request =>
 
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
-    val payload: JsValue = request.body.asJson.get
 
-    val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
+    request.headers.get("Correlation-Id") match {
+      case Some(corrId) =>
 
-    logger.info(s"[matchIndividual] payload : ${payload}.")
-    response(payload, validationResult)
+        val regex = """^[0-9a-fA-F]{8}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{12}$""".r
+
+        if (regex.findFirstIn(corrId).isDefined) {
+          val payload: JsValue = request.body.asJson.get
+
+          val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
+
+          logger.info(s"[matchIndividual] payload : ${payload}.")
+
+          response(payload, validationResult)
+
+        } else {
+          BadRequest(jsonResponse400CorrelationId)
+        }
+      case None => BadRequest(jsonResponse400CorrelationId)
+
+    }
 
   }
 
-  private def response(payload: JsValue, validationResult: ValidationResult): Future[Result] = {
+  private def response(payload: JsValue, validationResult: ValidationResult): Result = {
     validationResult match {
       case fail: FailedValidation =>
         logger.info("[matchIndividual] failed in payload validation.")
         logger.error(s"Failed with errors ${Json.toJson(fail)}")
-        Future.successful(BadRequest(jsonResponse400))
+        BadRequest(jsonResponse400)
       case SuccessfulValidation =>
+
+        logger.info(s"[matchIndividual] successful validation with payload: $payload.")
 
         val nino = (payload \ "nino").as[String]
 
-        val individualMatch = nino match {
-          case `failedMatch` => false
-          case _ => true
+        nino match {
+          case `notFound` => NotFound(jsonResponse404)
+          case `serviceUnavailable` => ServiceUnavailable(jsonResponse503)
+          case `serverError` => InternalServerError(jsonResponse500)
+          case `successfulMatch` => Ok(Json.obj("individualMatch" -> true))
+          case _ => Ok(Json.obj("individualMatch" -> false))
         }
 
-        logger.info(s"[matchIndividual] successful validation with payload: $payload.")
-        Future.successful(Ok(Json.obj("individualMatch" -> individualMatch)))
-
-      }
+    }
   }
 }

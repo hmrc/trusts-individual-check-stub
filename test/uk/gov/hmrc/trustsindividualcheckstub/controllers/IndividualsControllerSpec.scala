@@ -22,14 +22,35 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Play.materializer
 import play.api.http.Status
 import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import play.api.test.FakeRequest
+import uk.gov.hmrc.trustsindividualcheckstub.utils.CommonUtil
 
 class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
+
+  val ENVIRONMENT_HEADER = "Environment"
+  val TOKEN_HEADER = "Authorization"
+  val CORRELATIONID_HEADER = "Correlation-Id"
+
+  val CONTENT_TYPE_HEADER = ("Content-type", "application/json")
 
   private val application = baseApplicationBuilder
     .configure(("metrics.enabled", false))
     .build()
+
+  private def createRequestWithValidHeaders( body: JsValue, url :String = "/trusts/variations", method:String = "POST"): FakeRequest[AnyContentAsJson] = {
+    FakeRequest("POST", url)
+      .withHeaders(CONTENT_TYPE_HEADER)
+      .withJsonBody(body)
+      .withHeaders((ENVIRONMENT_HEADER, "dev"), (TOKEN_HEADER, "Bearer 11"), (CORRELATIONID_HEADER, "cd7a4033-ae84-4e18-861d-9d62c6741e87"))
+  }
+
+  private def createRequestWithoutHeaders(body: JsValue): FakeRequest[AnyContentAsJson] = {
+    FakeRequest("POST", "/trusts/variations")
+      .withHeaders(CONTENT_TYPE_HEADER)
+      .withJsonBody(body)
+  }
 
   private def body(nino: String): JsValue = Json.parse(s"""{
                           |    "nino": "$nino",
@@ -44,9 +65,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
     "return 200 with a valid body" when {
       "a match is found" in {
 
-        val fakeRequest = FakeRequest("POST", "/")
-          .withHeaders(("Content-type", "application/json"))
-          .withJsonBody(body("JH000000A"))
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.successfulMatch))
 
         val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.OK
@@ -55,9 +74,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
 
       "a match is not found" in {
 
-        val fakeRequest = FakeRequest("POST", "/")
-          .withHeaders(("Content-type", "application/json"))
-          .withJsonBody(body("AA000000A"))
+        val fakeRequest = createRequestWithValidHeaders(body("AA000000A"))
 
         val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.OK
@@ -68,9 +85,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
     "return 400" when {
       "invalid payload" in {
 
-        val fakeRequest = FakeRequest("POST", "/")
-          .withHeaders(("Content-type", "application/json"))
-          .withJsonBody(Json.obj())
+        val fakeRequest = createRequestWithValidHeaders(Json.obj())
 
         val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.BAD_REQUEST
@@ -80,6 +95,66 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
             "reason" -> "Submission has not passed validation. Invalid payload."
           )
         ))
+      }
+      "invalid correlation id" in {
+
+        val fakeRequest = createRequestWithoutHeaders(body("AA000000A"))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.BAD_REQUEST
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
+          Json.obj(
+            "code" -> "INVALID_CORRELATIONID",
+            "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
+          )
+        ))
+      }
+    }
+
+    "return 404" when {
+      "nino corresponds with nino not found" in {
+
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.notFound))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.NOT_FOUND
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
+          Json.obj(
+            "code" -> "RESOURCE_NOT_FOUND",
+            "reason" -> "The remote endpoint has indicated that no data can be found."
+          )
+        ))
+      }
+    }
+
+    "return 503" when {
+      "nino corresponds with service unavailable" in {
+
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.serviceUnavailable))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.SERVICE_UNAVAILABLE
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(
+          s"""
+             |{
+             | "code": "SERVICE_UNAVAILABLE",
+             | "reason": "Dependent systems are currently not responding."
+             |}""".stripMargin)))
+      }
+    }
+    "return 500" when {
+      "nino corresponds with server error" in {
+
+        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.serverError))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.INTERNAL_SERVER_ERROR
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(
+          s"""
+             |{
+             | "code": "SERVER_ERROR",
+             | "reason": "IF is currently experiencing problems that require live service intervention."
+             |}""".stripMargin)))
       }
     }
   }
