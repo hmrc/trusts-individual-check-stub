@@ -37,7 +37,7 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
 
-    request.headers.get("Correlation-Id") match {
+    request.headers.get("CorrelationId") match {
       case Some(corrId) =>
 
         val regex = """^[0-9a-fA-F]{8}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{12}$""".r

@@ -31,7 +31,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
 
   val ENVIRONMENT_HEADER = "Environment"
   val TOKEN_HEADER = "Authorization"
-  val CORRELATIONID_HEADER = "Correlation-Id"
+  val CORRELATIONID_HEADER = "CorrelationId"
 
   val CONTENT_TYPE_HEADER = ("Content-type", "application/json")
 
