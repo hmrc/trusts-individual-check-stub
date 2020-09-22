@@ -40,14 +40,12 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
     .build()
 
   private def createRequestWithValidHeaders( body: JsValue, url :String = "/trusts/variations", method:String = "POST"): FakeRequest[AnyContentAsJson] = {
-    FakeRequest("POST", url)
-      .withHeaders(CONTENT_TYPE_HEADER)
-      .withJsonBody(body)
+    createRequestWithoutHeaders(body)
       .withHeaders((ENVIRONMENT_HEADER, "dev"), (TOKEN_HEADER, "Bearer 11"), (CORRELATIONID_HEADER, "cd7a4033-ae84-4e18-861d-9d62c6741e87"))
   }
 
   private def createRequestWithoutHeaders(body: JsValue): FakeRequest[AnyContentAsJson] = {
-    FakeRequest("POST", "/trusts/variations")
+    FakeRequest("POST", "/individual/match")
       .withHeaders(CONTENT_TYPE_HEADER)
       .withJsonBody(body)
   }
@@ -96,9 +94,25 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
           )
         ))
       }
+      "no correlation id" in {
+
+        val fakeRequest = createRequestWithoutHeaders(body("AA000000A"))
+
+        val result = controller.matchIndividual()(fakeRequest)
+        status(result) shouldBe Status.BAD_REQUEST
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
+          Json.obj(
+            "code" -> "INVALID_CORRELATIONID",
+            "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
+          )
+        ))
+      }
       "invalid correlation id" in {
 
         val fakeRequest = createRequestWithoutHeaders(body("AA000000A"))
+          .withHeaders(
+            (ENVIRONMENT_HEADER, "dev"), (TOKEN_HEADER, "Bearer 11"), (CORRELATIONID_HEADER, "")
+          )
 
         val result = controller.matchIndividual()(fakeRequest)
         status(result) shouldBe Status.BAD_REQUEST
@@ -142,6 +156,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
              |}""".stripMargin)))
       }
     }
+    
     "return 500" when {
       "nino corresponds with server error" in {
 
