@@ -156,7 +156,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
              |}""".stripMargin)))
       }
     }
-    
+
     "return 500" when {
       "nino corresponds with server error" in {
 

@@ -37,6 +37,8 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
 
+    logger.info("Headers: " + request.headers.toString)
+
     request.headers.get("CorrelationId") match {
       case Some(corrId) =>
 
