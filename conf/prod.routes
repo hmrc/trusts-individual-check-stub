@@ -4,4 +4,4 @@
 
 GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics
 
-POST       /individuals/match         uk.gov.hmrc.trustsindividualcheckstub.controllers.IndividualsController.matchIndividual
+POST       /individuals/match         controllers.IndividualsController.matchIndividual

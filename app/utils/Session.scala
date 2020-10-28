@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.trustsindividualcheckstub.utils
+package utils
 
 import uk.gov.hmrc.http.HeaderCarrier
 
