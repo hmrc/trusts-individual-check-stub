@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.trustsindividualcheckstub.controllers
+package controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
@@ -22,9 +22,9 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.trustsindividualcheckstub.config.AppConfig
-import uk.gov.hmrc.trustsindividualcheckstub.utils.CommonUtil._
-import uk.gov.hmrc.trustsindividualcheckstub.utils._
+import config.AppConfig
+import utils.CommonUtil._
+import utils._
 
 @Singleton()
 class IndividualsController @Inject()(appConfig: AppConfig,

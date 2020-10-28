@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.trustsindividualcheckstub.utils
+package utils
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
