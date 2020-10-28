@@ -20,6 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.trustsindividualcheckstub.config.AppConfig
 import uk.gov.hmrc.trustsindividualcheckstub.utils.CommonUtil._
@@ -31,13 +32,13 @@ class IndividualsController @Inject()(appConfig: AppConfig,
                                       validationService: ValidationService
                                      ) extends BackendController(cc) {
 
-  private val logger = Logger("IndividualsController")
+  private val logger: Logger = Logger(getClass)
 
   def matchIndividual(): Action[AnyContent] = Action { implicit request =>
 
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
 
-    logger.info("Headers: " + request.headers.toString)
+    logger.info(s"[Session ID: ${Session.id(hc)}] Headers: " + request.headers.toString)
 
     request.headers.get("CorrelationId") match {
       case Some(corrId) =>
@@ -49,7 +50,7 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
           val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
 
-          logger.info(s"[matchIndividual] payload : ${payload}.")
+          logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] payload : ${payload}.")
 
           response(payload, validationResult)
 
@@ -62,15 +63,15 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
   }
 
-  private def response(payload: JsValue, validationResult: ValidationResult): Result = {
+  private def response(payload: JsValue, validationResult: ValidationResult)(implicit hc: HeaderCarrier): Result = {
     validationResult match {
       case fail: FailedValidation =>
-        logger.info("[matchIndividual] failed in payload validation.")
-        logger.error(s"Failed with errors ${Json.toJson(fail)}")
+        logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] failed in payload validation.")
+        logger.error(s"[matchIndividual][Session ID: ${Session.id(hc)}] Failed with errors ${Json.toJson(fail)}")
         BadRequest(jsonResponse400)
       case SuccessfulValidation =>
 
-        logger.info(s"[matchIndividual] successful validation with payload: $payload.")
+        logger.info(s"[matchIndividual]Session ID: ${Session.id(hc)} successful validation with payload: $payload.")
 
         val nino = (payload \ "nino").as[String]
 

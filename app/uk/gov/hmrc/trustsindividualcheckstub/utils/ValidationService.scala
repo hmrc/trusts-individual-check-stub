@@ -46,7 +46,7 @@ class Validator(schema: JsonSchema) {
   private val jsonErrorInstanceTag = "instance"
   private val jsonErrorPointerTag = "pointer"
 
-  private val logger = Logger("ValidationService")
+  private val logger: Logger = Logger(getClass)
 
   def validateAgainstSchema(input: String): ValidationResult = {
 
