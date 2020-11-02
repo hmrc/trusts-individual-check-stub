@@ -21,16 +21,9 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     majorVersion                     := 0,
     PlayKeys.playDefaultPort         := 9847,
-    scalaVersion                     := "2.12.11",
+    scalaVersion                     := "2.12.12",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
-    // ***************
-    // Use the silencer plugin to suppress warnings
-    scalacOptions += "-P:silencer:pathFilters=routes",
-    libraryDependencies ++= Seq(
-      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
-    )
-    // ***************
+    SilencerSettings(),
   )
   .settings(publishingSettings ++ scoverageSettings: _*)
   .configs(IntegrationTest)
