@@ -9,6 +9,11 @@ To run locally using the micro-service provided by the service manager:
 
 If you want to run your local copy, then stop the frontend ran by the service manager and run your local code by using the following (port number is 9847 but is defaulted to that in build.sbt).
 
+# Test data
+
+**Successful match for lead trustee nino:**
+AA100001A
+
 `sbt run`
 
 ### License
