@@ -3,14 +3,14 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "trusts-individual-check-stub"
 
-val silencerVersion = "1.7.0"
+val silencerVersion = "1.7.9"
 
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
   Seq(
     ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;app.Routes.*;prod.*;testOnlyDoNotUseInProd.*;testOnlyDoNotUseInAppConf.*;" +
       "uk.gov.hmrc.BuildInfo;app.*;prod.*;config.*;.*ClaimedTrustsRepository;.*AppConfig",
-    ScoverageKeys.coverageMinimum := 70,
+    ScoverageKeys.coverageMinimumStmtTotal := 70,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
@@ -21,7 +21,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     majorVersion                     := 0,
     PlayKeys.playDefaultPort         := 9847,
-    scalaVersion                     := "2.12.12",
+    scalaVersion                     := "2.12.16",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
     SilencerSettings(),
   )
