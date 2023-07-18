@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import config.AppConfig
 import utils.CommonUtil._
 import utils._
 
+import javax.inject.{Inject, Singleton}
+
 @Singleton()
-class IndividualsController @Inject()(appConfig: AppConfig,
-                                      cc: ControllerComponents,
-                                      validationService: ValidationService
-                                     ) extends BackendController(cc) {
+class IndividualsController @Inject()(cc: ControllerComponents, validationService: ValidationService)
+  extends BackendController(cc) {
 
   private val logger: Logger = Logger(getClass)
 
@@ -50,7 +48,7 @@ class IndividualsController @Inject()(appConfig: AppConfig,
 
           val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
 
-          logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] payload : ${payload}.")
+          logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] payload : $payload.")
 
           response(payload, validationResult)
 
