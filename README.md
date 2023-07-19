@@ -5,7 +5,7 @@ It mocks the responses from ITMP where an individual is matched using their nati
 
 To run locally using the micro-service provided by the service manager:
 
-***sm --start TRUSTS_ALL -r***
+***sm2 --start TRUSTS_ALL***
 
 If you want to run your local copy, then stop the frontend ran by the service manager and run your local code by using the following (port number is 9847 but is defaulted to that in build.sbt).
 

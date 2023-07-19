@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import com.github.fge.jsonschema.core.report.ProcessingReport
 import com.github.fge.jsonschema.main.{JsonSchema, JsonSchemaFactory}
 import play.api.Logger
 
-import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.io.Source
+import scala.jdk.CollectionConverters.IterableHasAsScala
 import scala.util.{Success, Try}
 
 class ValidationService () {
@@ -33,7 +33,8 @@ class ValidationService () {
   private val factory = JsonSchemaFactory.byDefault()
 
   def get(schemaFile: String): Validator = {
-    val schemaJsonFileString = Source.fromFile(getClass.getResource(schemaFile).getPath).mkString
+    val source = Source.fromFile(getClass.getResource(schemaFile).getPath)
+    val schemaJsonFileString = try source.mkString finally source.close()
     val schemaJson = JsonLoader.fromString(schemaJsonFileString)
     val schema = factory.getJsonSchema(schemaJson)
     new Validator(schema)
@@ -83,16 +84,14 @@ class Validator(schema: JsonSchema) {
 
 
   private def getValidationErrors(validationOutput: ProcessingReport): Seq[ValidationError] = {
-    validationOutput.iterator
-      .asScala
-      .toList
+    validationOutput.asScala.toList
       .filter(_.getLogLevel == ERROR)
       .map { m =>
         val error = m.asJson()
         val message = error.findValue(jsonErrorMessageTag).asText("")
         val location = error.findValue(jsonErrorInstanceTag).at(s"/$jsonErrorPointerTag").asText()
         val locations = error.findValues(jsonErrorInstanceTag)
-        logger.error(s"[getValidationErrors] Failed at locations : ${locations}")
+        logger.error(s"[getValidationErrors] Failed at locations : $locations")
         ValidationError(message, if (location == "") "/" else location)
       }
   }

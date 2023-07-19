@@ -1,31 +1,25 @@
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+import scoverage.ScoverageKeys.*
 
 val appName = "trusts-individual-check-stub"
 
-val silencerVersion = "1.7.9"
-
-lazy val scoverageSettings = {
-  import scoverage.ScoverageKeys
+lazy val scoverageSettings =
   Seq(
-    ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;app.Routes.*;prod.*;testOnlyDoNotUseInProd.*;testOnlyDoNotUseInAppConf.*;" +
-      "uk.gov.hmrc.BuildInfo;app.*;prod.*;config.*;.*ClaimedTrustsRepository;.*AppConfig",
-    ScoverageKeys.coverageMinimumStmtTotal := 70,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
+    coverageExcludedPackages := "<empty>;.*config.*;Reverse.*;.*BuildInfo.*;.*Routes.*;.*GuiceInjector;",
+    coverageMinimumStmtTotal := 90,
+    coverageFailOnMinimum := true,
+    coverageHighlighting := true
   )
-}
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(
     majorVersion                     := 0,
     PlayKeys.playDefaultPort         := 9847,
-    scalaVersion                     := "2.12.16",
+    scalaVersion                     := "2.13.11",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
-    SilencerSettings(),
+    scoverageSettings,
+    scalacOptions += "-Wconf:src=routes/.*:s"
   )
-  .settings(publishingSettings ++ scoverageSettings: _*)
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
-  .settings(resolvers += Resolver.jcenterRepo)
+  // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
+  // Try to remove when sbt[ 1.8.0+ and scoverage is 2.0.7+
+  .settings(libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always))
