@@ -28,28 +28,30 @@ import scala.io.Source
 import scala.jdk.CollectionConverters.IterableHasAsScala
 import scala.util.{Success, Try}
 
-class ValidationService () {
+class ValidationService() {
 
   private val factory = JsonSchemaFactory.byDefault()
 
   def get(schemaFile: String): Validator = {
-    val source = Source.fromInputStream(getClass.getResourceAsStream(schemaFile))
-    val schemaJsonFileString = try source.mkString finally source.close()
-    val schemaJson = JsonLoader.fromString(schemaJsonFileString)
-    val schema = factory.getJsonSchema(schemaJson)
+    val source               = Source.fromInputStream(getClass.getResourceAsStream(schemaFile))
+    val schemaJsonFileString =
+      try source.mkString
+      finally source.close()
+    val schemaJson           = JsonLoader.fromString(schemaJsonFileString)
+    val schema               = factory.getJsonSchema(schemaJson)
     new Validator(schema)
   }
 
 }
 
 class Validator(schema: JsonSchema) {
-  private val jsonErrorMessageTag = "message"
+  private val jsonErrorMessageTag  = "message"
   private val jsonErrorInstanceTag = "instance"
-  private val jsonErrorPointerTag = "pointer"
+  private val jsonErrorPointerTag  = "pointer"
 
   private val logger: Logger = Logger(getClass)
 
-  def validateAgainstSchema(input: String): ValidationResult = {
+  def validateAgainstSchema(input: String): ValidationResult =
 
     try {
       val jsonToValidate: Try[JsonNode] = doNotAllowDuplicatedProperties(input)
@@ -71,42 +73,39 @@ class Validator(schema: JsonSchema) {
             failedValidation
           }
 
-        case _=> logger.error(s"[Failure]Error validating Json request against schemas")
+        case _ =>
+          logger.error(s"[Failure]Error validating Json request against schemas")
           FailedValidation("Not JSON", 0, Nil)
       }
-    }
-    catch {
+    } catch {
       case ex: Exception =>
         logger.error(s"Error validating Json request against schemas: ${ex.getMessage}")
         FailedValidation("Not JSON", 0, Nil)
     }
-  }
 
-
-  private def getValidationErrors(validationOutput: ProcessingReport): Seq[ValidationError] = {
+  private def getValidationErrors(validationOutput: ProcessingReport): Seq[ValidationError] =
     validationOutput.asScala.toList
       .filter(_.getLogLevel == ERROR)
       .map { m =>
-        val error = m.asJson()
-        val message = error.findValue(jsonErrorMessageTag).asText("")
-        val location = error.findValue(jsonErrorInstanceTag).at(s"/$jsonErrorPointerTag").asText()
+        val error     = m.asJson()
+        val message   = error.findValue(jsonErrorMessageTag).asText("")
+        val location  = error.findValue(jsonErrorInstanceTag).at(s"/$jsonErrorPointerTag").asText()
         val locations = error.findValues(jsonErrorInstanceTag)
         logger.error(s"[getValidationErrors] Failed at locations : $locations")
         ValidationError(message, if (location == "") "/" else location)
       }
-  }
 
   private def doNotAllowDuplicatedProperties(jsonNodeAsString: String): Try[JsonNode] = {
     val objectMapper: ObjectMapper = new ObjectMapper()
     objectMapper.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
 
     val jsonFactory: JsonFactory = objectMapper.getFactory
-    val jsonParser: JsonParser = jsonFactory.createParser(jsonNodeAsString)
+    val jsonParser: JsonParser   = jsonFactory.createParser(jsonNodeAsString)
 
     objectMapper.readTree(jsonParser)
 
     val jsonAsNode: Try[JsonNode] = Try(JsonLoader.fromString(jsonNodeAsString))
     jsonAsNode
   }
-}
 
+}

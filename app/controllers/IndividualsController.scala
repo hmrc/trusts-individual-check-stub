@@ -27,13 +27,12 @@ import utils._
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class IndividualsController @Inject()(cc: ControllerComponents, validationService: ValidationService)
-  extends BackendController(cc) {
+class IndividualsController @Inject() (cc: ControllerComponents, validationService: ValidationService)
+    extends BackendController(cc) {
 
   private val logger: Logger = Logger(getClass)
 
   def matchIndividual(): Action[AnyContent] = Action { implicit request =>
-
     val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
 
     logger.info(s"[Session ID: ${Session.id(hc)}] Headers: " + request.headers.toString)
@@ -61,26 +60,26 @@ class IndividualsController @Inject()(cc: ControllerComponents, validationServic
 
   }
 
-  private def response(payload: JsValue, validationResult: ValidationResult)(implicit hc: HeaderCarrier): Result = {
+  private def response(payload: JsValue, validationResult: ValidationResult)(implicit hc: HeaderCarrier): Result =
     validationResult match {
       case fail: FailedValidation =>
         logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] failed in payload validation.")
         logger.error(s"[matchIndividual][Session ID: ${Session.id(hc)}] Failed with errors ${Json.toJson(fail)}")
         BadRequest(jsonResponse400)
-      case SuccessfulValidation =>
+      case SuccessfulValidation   =>
 
         logger.info(s"[matchIndividual]Session ID: ${Session.id(hc)} successful validation with payload: $payload.")
 
         val nino = (payload \ "nino").as[String]
 
         nino match {
-          case `notFound` => NotFound(jsonResponse404)
+          case `notFound`           => NotFound(jsonResponse404)
           case `serviceUnavailable` => ServiceUnavailable(jsonResponse503)
-          case `serverError` => InternalServerError(jsonResponse500)
-          case `successfulMatch` => Ok(Json.obj("individualMatch" -> true))
-          case _ => Ok(Json.obj("individualMatch" -> false))
+          case `serverError`        => InternalServerError(jsonResponse500)
+          case `successfulMatch`    => Ok(Json.obj("individualMatch" -> true))
+          case _                    => Ok(Json.obj("individualMatch" -> false))
         }
 
     }
-  }
+
 }

@@ -28,11 +28,8 @@ object ValidationError {
 
 case class FailedValidation(message: String, code: Int, validationErrors: Seq[ValidationError]) extends ValidationResult
 
-
 object FailedValidation {
   implicit val formats: OFormat[FailedValidation] = Json.format[FailedValidation]
 }
 
 case object SuccessfulValidation extends ValidationResult
-
-
