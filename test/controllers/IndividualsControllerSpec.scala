@@ -40,8 +40,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
-  val ENVIRONMENT_HEADER: String = "Environment"
-  val TOKEN_HEADER: String = "Authorization"
+  val ENVIRONMENT_HEADER: String   = "Environment"
+  val TOKEN_HEADER: String         = "Authorization"
   val CORRELATIONID_HEADER: String = "CorrelationId"
 
   val CONTENT_TYPE_HEADER: (String, String) = ("Content-type", "application/json")
@@ -54,25 +54,26 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
   override lazy val app: Application = baseApplicationBuilder
     .disable(classOf[AuditModule], classOf[DefaultBackendAuditFilter])
     .configure(
-      "metrics.enabled" -> false,
+      "metrics.enabled"                       -> false,
       "microservice.metrics.graphite.enabled" -> false
     )
     .overrides(inject.bind[AuditConnector].to(mockAuditConnector))
     .build()
 
-  private def createRequestWithValidHeaders(body: JsValue): FakeRequest[AnyContentAsJson] = {
+  private def createRequestWithValidHeaders(body: JsValue): FakeRequest[AnyContentAsJson] =
     createRequestWithoutHeaders(body)
-      .withHeaders((ENVIRONMENT_HEADER, "dev"), (TOKEN_HEADER, "Bearer 11"), (CORRELATIONID_HEADER, "cd7a4033-ae84-4e18-861d-9d62c6741e87"))
-  }
+      .withHeaders(
+        (ENVIRONMENT_HEADER, "dev"),
+        (TOKEN_HEADER, "Bearer 11"),
+        (CORRELATIONID_HEADER, "cd7a4033-ae84-4e18-861d-9d62c6741e87")
+      )
 
-  private def createRequestWithoutHeaders(body: JsValue): FakeRequest[AnyContentAsJson] = {
+  private def createRequestWithoutHeaders(body: JsValue): FakeRequest[AnyContentAsJson] =
     FakeRequest("POST", "/individual/match")
       .withHeaders(CONTENT_TYPE_HEADER)
       .withJsonBody(body)
-  }
 
-  private def body(nino: String): JsValue = Json.parse(
-    s"""{
+  private def body(nino: String): JsValue = Json.parse(s"""{
        |    "nino": "$nino",
        |    "forename": "Adam",
        |    "surname": "Conder",
@@ -88,7 +89,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
         val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.successfulMatch))
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.OK
+        status(result)        shouldBe Status.OK
         contentAsJson(result) shouldBe Json.obj("individualMatch" -> true)
       }
 
@@ -97,7 +98,7 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
         val fakeRequest = createRequestWithValidHeaders(body("AA000000A"))
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.OK
+        status(result)        shouldBe Status.OK
         contentAsJson(result) shouldBe Json.obj("individualMatch" -> false)
       }
     }
@@ -108,42 +109,50 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
         val fakeRequest = createRequestWithValidHeaders(Json.obj())
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.BAD_REQUEST
-        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
-          Json.obj(
-            "code" -> "INVALID_PAYLOAD",
-            "reason" -> "Submission has not passed validation. Invalid payload."
+        status(result)        shouldBe Status.BAD_REQUEST
+        contentAsJson(result) shouldBe Json.obj(
+          "failures" -> Json.arr(
+            Json.obj(
+              "code"   -> "INVALID_PAYLOAD",
+              "reason" -> "Submission has not passed validation. Invalid payload."
+            )
           )
-        ))
+        )
       }
       "no correlation id" in {
 
         val fakeRequest = createRequestWithoutHeaders(body("AA000000A"))
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.BAD_REQUEST
-        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
-          Json.obj(
-            "code" -> "INVALID_CORRELATIONID",
-            "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
+        status(result)        shouldBe Status.BAD_REQUEST
+        contentAsJson(result) shouldBe Json.obj(
+          "failures" -> Json.arr(
+            Json.obj(
+              "code"   -> "INVALID_CORRELATIONID",
+              "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
+            )
           )
-        ))
+        )
       }
       "invalid correlation id" in {
 
         val fakeRequest = createRequestWithoutHeaders(body("AA000000A"))
           .withHeaders(
-            (ENVIRONMENT_HEADER, "dev"), (TOKEN_HEADER, "Bearer 11"), (CORRELATIONID_HEADER, "")
+            (ENVIRONMENT_HEADER, "dev"),
+            (TOKEN_HEADER, "Bearer 11"),
+            (CORRELATIONID_HEADER, "")
           )
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.BAD_REQUEST
-        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
-          Json.obj(
-            "code" -> "INVALID_CORRELATIONID",
-            "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
+        status(result)        shouldBe Status.BAD_REQUEST
+        contentAsJson(result) shouldBe Json.obj(
+          "failures" -> Json.arr(
+            Json.obj(
+              "code"   -> "INVALID_CORRELATIONID",
+              "reason" -> "Submission has not passed validation. Invalid Header CorrelationId."
+            )
           )
-        ))
+        )
       }
     }
 
@@ -153,13 +162,15 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
         val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.notFound))
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.NOT_FOUND
-        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(
-          Json.obj(
-            "code" -> "RESOURCE_NOT_FOUND",
-            "reason" -> "The remote endpoint has indicated that no data can be found."
+        status(result)        shouldBe Status.NOT_FOUND
+        contentAsJson(result) shouldBe Json.obj(
+          "failures" -> Json.arr(
+            Json.obj(
+              "code"   -> "RESOURCE_NOT_FOUND",
+              "reason" -> "The remote endpoint has indicated that no data can be found."
+            )
           )
-        ))
+        )
       }
     }
 
@@ -169,9 +180,8 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
         val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.serviceUnavailable))
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.SERVICE_UNAVAILABLE
-        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(
-          s"""
+        status(result)        shouldBe Status.SERVICE_UNAVAILABLE
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(s"""
              |{
              | "code": "SERVICE_UNAVAILABLE",
              | "reason": "Dependent systems are currently not responding."
@@ -185,9 +195,8 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
         val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.serverError))
 
         val result = controller.matchIndividual()(fakeRequest)
-        status(result) shouldBe Status.INTERNAL_SERVER_ERROR
-        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(
-          s"""
+        status(result)        shouldBe Status.INTERNAL_SERVER_ERROR
+        contentAsJson(result) shouldBe Json.obj("failures" -> Json.arr(Json.parse(s"""
              |{
              | "code": "SERVER_ERROR",
              | "reason": "IF is currently experiencing problems that require live service intervention."
@@ -195,4 +204,5 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
       }
     }
   }
+
 }
