@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utils
+package models
 
 import play.api.libs.json.{Json, OFormat}
 
@@ -23,13 +23,13 @@ sealed trait ValidationResult
 case class ValidationError(message: String, location: String)
 
 object ValidationError {
-  implicit val formats: OFormat[ValidationError] = Json.format[ValidationError]
+  given OFormat[ValidationError] = Json.format[ValidationError]
 }
 
 case class FailedValidation(message: String, code: Int, validationErrors: Seq[ValidationError]) extends ValidationResult
 
 object FailedValidation {
-  implicit val formats: OFormat[FailedValidation] = Json.format[FailedValidation]
+  given OFormat[FailedValidation] = Json.format[FailedValidation]
 }
 
 case object SuccessfulValidation extends ValidationResult

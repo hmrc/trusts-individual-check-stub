@@ -2,14 +2,14 @@ import sbt.*
 
 object AppDependencies {
 
-  val bootstrapVersion = "10.5.0"
+  private val bootstrapVersion = "10.6.0"
 
-  val compile: Seq[ModuleID] = Seq(
+  private val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"               %% "bootstrap-backend-play-30" % bootstrapVersion,
     "com.github.java-json-tools" % "json-schema-validator"     % "2.2.14"
   )
 
-  val test: Seq[ModuleID] = Seq(
+  private val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion
   ).map(_ % Test)
 
