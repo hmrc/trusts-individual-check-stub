@@ -2,4 +2,4 @@
 
 ->         /                          health.Routes
 
-POST       /individuals/match         controllers.IndividualsController.matchIndividual
+POST       /individuals/match         controllers.IndividualsController.matchIndividual()

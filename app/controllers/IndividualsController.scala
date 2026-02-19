@@ -16,13 +16,14 @@
 
 package controllers
 
+import models.{FailedValidation, SuccessfulValidation, ValidationResult}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import utils.CommonUtil._
-import utils._
+import utils.CommonUtil.*
+import utils.*
 
 import javax.inject.{Inject, Singleton}
 
@@ -32,10 +33,11 @@ class IndividualsController @Inject() (cc: ControllerComponents, validationServi
 
   private val logger: Logger = Logger(getClass)
 
-  def matchIndividual(): Action[AnyContent] = Action { implicit request =>
-    val schema = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
+  def matchIndividual(): Action[AnyContent] = Action { request =>
+    given headerCarrier: HeaderCarrier = hc(request)
+    val schema                         = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
 
-    logger.info(s"[Session ID: ${Session.id(hc)}] Headers: " + request.headers.toString)
+    logger.info(s"[Session ID: ${Session.id(headerCarrier)}] Headers: " + request.headers.toString)
 
     request.headers.get("CorrelationId") match {
       case Some(corrId) =>
@@ -47,7 +49,7 @@ class IndividualsController @Inject() (cc: ControllerComponents, validationServi
 
           val validationResult = validationService.get(schema).validateAgainstSchema(payload.toString())
 
-          logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] payload : $payload.")
+          logger.info(s"[matchIndividual][Session ID: ${Session.id(headerCarrier)}] payload : $payload.")
 
           response(payload, validationResult)
 
@@ -60,7 +62,7 @@ class IndividualsController @Inject() (cc: ControllerComponents, validationServi
 
   }
 
-  private def response(payload: JsValue, validationResult: ValidationResult)(implicit hc: HeaderCarrier): Result =
+  private def response(payload: JsValue, validationResult: ValidationResult)(using hc: HeaderCarrier): Result =
     validationResult match {
       case fail: FailedValidation =>
         logger.info(s"[matchIndividual][Session ID: ${Session.id(hc)}] failed in payload validation.")
