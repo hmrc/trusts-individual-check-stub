@@ -16,24 +16,26 @@
 
 package utils
 
-import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.main.JsonSchemaFactory
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.networknt.schema.{SchemaRegistry, SpecificationVersion}
 
 import javax.inject.Singleton
 import scala.io.Source
 
 @Singleton
 class ValidationService {
+  private val schemaMapper: ObjectMapper = new ObjectMapper()
 
-  private val factory = JsonSchemaFactory.byDefault()
+  private val schemaRegistry: SchemaRegistry =
+    SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_4)
 
   def get(schemaFile: String): Validator = {
     val source               = Source.fromInputStream(getClass.getResourceAsStream(schemaFile))
-    val schemaJsonFileString =
-      try source.mkString
-      finally source.close()
-    val schemaJson           = JsonLoader.fromString(schemaJsonFileString)
-    val schema               = factory.getJsonSchema(schemaJson)
+    val schemaJsonFileString = source.mkString
+    source.close()
+    val schemaNode           = schemaMapper.readTree(schemaJsonFileString)
+    val schema               = schemaRegistry.getSchema(schemaNode)
+
     new Validator(schema)
   }
 
