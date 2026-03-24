@@ -16,7 +16,7 @@
 
 package utils
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.networknt.schema.Schema
 import models.{FailedValidation, SuccessfulValidation, ValidationError, ValidationResult}
@@ -79,9 +79,11 @@ class Validator(schema: Schema) {
   private def doNotAllowDuplicatedProperties(jsonNodeAsString: String): Try[JsonNode] = {
     val objectMapper: ObjectMapper = new ObjectMapper()
     objectMapper.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
-
-    Try(objectMapper.readTree(jsonNodeAsString))
-
+    Try {
+      val parser             = objectMapper.getFactory.createParser(jsonNodeAsString)
+      val jsonNode: JsonNode = objectMapper.readTree(parser)
+      jsonNode
+    }
   }
 
 }

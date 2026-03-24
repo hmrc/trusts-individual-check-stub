@@ -80,7 +80,7 @@ class ValidatorSpec extends AnyWordSpec with Matchers {
       println("result--------" + result)
 
       result                                        shouldBe a[FailedValidation]
-      result.asInstanceOf[FailedValidation].message shouldBe "Invalid Json"
+      result.asInstanceOf[FailedValidation].message shouldBe "Not JSON"
     }
 
     "return FailedValidation for JSON with invalid field format" in {
