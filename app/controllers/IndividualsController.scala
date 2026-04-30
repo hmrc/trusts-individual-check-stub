@@ -22,8 +22,8 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import utils.CommonUtil.*
 import utils.*
+import utils.CommonUtil.*
 
 import javax.inject.{Inject, Singleton}
 

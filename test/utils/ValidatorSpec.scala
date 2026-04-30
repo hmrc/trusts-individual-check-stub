@@ -17,14 +17,15 @@
 package utils
 
 import models.{FailedValidation, SuccessfulValidation}
+import org.scalatest.matchers.must.Matchers.mustBe
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class ValidatorSpec extends AnyWordSpec with Matchers {
 
-  private val schema              = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
-  private val validationService   = new ValidationService
-  private val validator           = validationService.get(schema)
+  private val schema            = "/resources/schemas/API1585_Individual_Match_0.2.0.json"
+  private val validationService = new ValidationService
+  private val validator         = validationService.get(schema)
 
   "Validator" should {
 
@@ -41,7 +42,7 @@ class ValidatorSpec extends AnyWordSpec with Matchers {
 
       val result = validator.validateAgainstSchema(invalidJson)
 
-      result shouldBe a[FailedValidation]
+      result                                        shouldBe a[FailedValidation]
       result.asInstanceOf[FailedValidation].message shouldBe "Invalid Json"
     }
 
@@ -50,16 +51,17 @@ class ValidatorSpec extends AnyWordSpec with Matchers {
 
       val result = validator.validateAgainstSchema(malformedJson)
 
-      result shouldBe a[FailedValidation]
+      result                                        shouldBe a[FailedValidation]
       result.asInstanceOf[FailedValidation].message shouldBe "Not JSON"
     }
 
     "return FailedValidation for JSON with duplicate keys" in {
-      val duplicateKeyJson = """{"nino":"AA100001A","nino":"AA100002A","forename":"Adam","surname":"Conder","birthDate":"2020-05-10"}"""
+      val duplicateKeyJson =
+        """{"nino":"AA100001A","nino":"AA100002A","forename":"Adam","surname":"Conder","birthDate":"2020-05-10"}"""
 
       val result = validator.validateAgainstSchema(duplicateKeyJson)
 
-      result shouldBe a[FailedValidation]
+      result                                        shouldBe a[FailedValidation]
       result.asInstanceOf[FailedValidation].message shouldBe "Not JSON"
     }
 
@@ -68,7 +70,7 @@ class ValidatorSpec extends AnyWordSpec with Matchers {
 
       val result = validator.validateAgainstSchema(nonJson)
 
-      result shouldBe a[FailedValidation]
+      result                                        shouldBe a[FailedValidation]
       result.asInstanceOf[FailedValidation].message shouldBe "Not JSON"
     }
 
@@ -77,8 +79,8 @@ class ValidatorSpec extends AnyWordSpec with Matchers {
 
       val result = validator.validateAgainstSchema(emptyString)
 
-      result shouldBe a[FailedValidation]
-      result.asInstanceOf[FailedValidation].message shouldBe "Not JSON"
+      result                                        shouldBe a[FailedValidation]
+      result.asInstanceOf[FailedValidation].message shouldBe "Invalid Json"
     }
 
     "return FailedValidation for JSON with invalid field format" in {
@@ -86,8 +88,14 @@ class ValidatorSpec extends AnyWordSpec with Matchers {
 
       val result = validator.validateAgainstSchema(invalidFieldJson)
 
-      result shouldBe a[FailedValidation]
+      result                                        shouldBe a[FailedValidation]
       result.asInstanceOf[FailedValidation].message shouldBe "Invalid Json"
+    }
+    "throws Exception when file is not present" in {
+      val exception = intercept[RuntimeException] {
+        new ValidationService().get("/missing-schema.json")
+      }
+      exception.getMessage mustBe "Missing schema: /missing-schema.json"
     }
   }
 
