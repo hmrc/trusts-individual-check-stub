@@ -16,25 +16,34 @@
 
 package utils
 
-import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.main.JsonSchemaFactory
+import com.networknt.schema.{SchemaRegistry, SpecificationVersion}
 
+import java.io.InputStream
 import javax.inject.Singleton
 import scala.io.Source
+import scala.util.Using
 
 @Singleton
 class ValidationService {
 
-  private val factory = JsonSchemaFactory.byDefault()
-
   def get(schemaFile: String): Validator = {
-    val source               = Source.fromInputStream(getClass.getResourceAsStream(schemaFile))
-    val schemaJsonFileString =
-      try source.mkString
-      finally source.close()
-    val schemaJson           = JsonLoader.fromString(schemaJsonFileString)
-    val schema               = factory.getJsonSchema(schemaJson)
+
+    val resource = resourceAsString(schemaFile)
+      .getOrElse(throw new RuntimeException("Missing schema: " + schemaFile))
+
+    val schema = SchemaRegistry
+      .withDefaultDialect(SpecificationVersion.DRAFT_4)
+      .getSchema(resource)
+
     new Validator(schema)
   }
+
+  private def resourceAsString(resourcePath: String): Option[String] =
+    resourceAsInputStream(resourcePath) flatMap { is =>
+      Using(Source.fromInputStream(is))(_.getLines().mkString("\n")).toOption
+    }
+
+  private def resourceAsInputStream(resourcePath: String): Option[InputStream] =
+    Option(getClass.getResourceAsStream(resourcePath))
 
 }
