@@ -20,7 +20,15 @@ import play.api.libs.json.{JsValue, Json}
 
 object CommonUtil {
 
-  val successfulMatch    = "AA100001A"
+  val successfulMatchNinos = List(
+    "AA100001A",
+    "YK163837B",
+    "NA185616B",
+    "JW170250C",
+    "AC123446A",
+    "YS694297D"
+  )
+
   val serviceUnavailable = "AA100503A"
   val serverError        = "AA100500A"
   val notFound           = "AA100404A"
