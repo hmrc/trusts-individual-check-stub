@@ -19,6 +19,7 @@ package controllers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
+import org.scalatest.Inspectors.forAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -84,13 +85,15 @@ class IndividualsControllerSpec extends AnyWordSpec with Matchers with GuiceOneA
 
   "POST /individuals/match" should {
     "return 200 with a valid body" when {
-      "a match is found" in {
+      forAll(CommonUtil.successfulMatchNinos) { nino =>
+        s"a match is found with $nino" in {
 
-        val fakeRequest = createRequestWithValidHeaders(body(CommonUtil.successfulMatch))
+          val fakeRequest = createRequestWithValidHeaders(body(nino))
 
-        val result = controller.matchIndividual()(fakeRequest)
-        status(result)        shouldBe Status.OK
-        contentAsJson(result) shouldBe Json.obj("individualMatch" -> true)
+          val result = controller.matchIndividual()(fakeRequest)
+          status(result)        shouldBe Status.OK
+          contentAsJson(result) shouldBe Json.obj("individualMatch" -> true)
+        }
       }
 
       "a match is not found" in {

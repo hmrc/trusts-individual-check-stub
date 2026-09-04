@@ -75,11 +75,11 @@ class IndividualsController @Inject() (cc: ControllerComponents, validationServi
         val nino = (payload \ "nino").as[String]
 
         nino match {
-          case `notFound`           => NotFound(jsonResponse404)
-          case `serviceUnavailable` => ServiceUnavailable(jsonResponse503)
-          case `serverError`        => InternalServerError(jsonResponse500)
-          case `successfulMatch`    => Ok(Json.obj("individualMatch" -> true))
-          case _                    => Ok(Json.obj("individualMatch" -> false))
+          case `notFound`                            => NotFound(jsonResponse404)
+          case `serviceUnavailable`                  => ServiceUnavailable(jsonResponse503)
+          case `serverError`                         => InternalServerError(jsonResponse500)
+          case n if successfulMatchNinos.contains(n) => Ok(Json.obj("individualMatch" -> true))
+          case _                                     => Ok(Json.obj("individualMatch" -> false))
         }
 
     }
